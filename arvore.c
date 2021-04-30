@@ -5,72 +5,73 @@
 
 
 struct arv{
-    char caracter;
+    char* caracter;
     int id;
     Arvore* esq;
     Arvore* dir;
 };
 
-int tokenAbreParenteses(char token){
-    if(token=='('){
+int tokenAbreParenteses(char* token){
+    if(*token=='('){
         return 1;
     }else{
         return 0;
     }
 }
 
-int tokenOperador(char token){
-    if(token=='+' || token=='-' || token=='*' || token=='/'){
+int tokenOperador(char* token){
+    if(*token=='+' || *token=='-' || *token=='*' || *token=='/'){
         return 1; 
     }else{
         return 0;
     }
 }
 
-int tokenFechaParenteses(char token){
-    if(token==')'){
+int tokenFechaParenteses(char* token){
+    if(*token==')'){
         return 1;
     }else{
         return 0;
     }
 }
-// ((((5)-(3))*((4)/(1)))+(10))
-void executaAbreParenteses(char tokenAtual,char tokenAntigo,Arvore* nodeAtual,Arvore* nodePrimario){
-    if(tokenAntigo=='h'){ // se for o primeiro nó da arvore
-        nodeAtual = arvore_Cria('0',NULL,NULL); // cria um nó vazio
+
+void executaAbreParenteses(char* tokenAtual,char* tokenAntigo,Arvore* nodeAtual,Arvore* nodePrimario){
+    if(*tokenAntigo=='h'){ // se for o primeiro nó da arvore
+        nodeAtual = arvore_Cria(NULL,NULL,NULL); // cria um nó vazio
         nodePrimario = nodeAtual;
                 
     }else{ 
         if(tokenOperador(tokenAntigo)){ // se o token antigo for um operador
             
-            nodeAtual->dir = arvore_Cria('0',NULL,NULL); // cria um nó vazio na direita do nó atual
+            nodeAtual->dir = arvore_Cria(NULL,NULL,NULL); // cria um nó vazio na direita do nó atual
             nodeAtual = nodeAtual->dir;
             
         }else{   
             
-            nodeAtual->esq = arvore_Cria('0',NULL,NULL); // cria um nó vazio na esquerda do nó atual
-            printf("2\n");
+            nodeAtual->esq = arvore_Cria(NULL,NULL,NULL); // cria um nó vazio na esquerda do nó atual
             nodeAtual = nodeAtual->esq; 
+
             
         }
     }
             
 }
 
-void executaOperador(char tokenAtual,Arvore* nodeAtual){
+void executaOperador(char* tokenAtual,Arvore* nodeAtual){
 
-    nodeAtual->caracter = tokenAtual;
+    *nodeAtual->caracter = *tokenAtual;
 
 }
 
-void executaNumero(char tokenAtual,Arvore* nodeAtual){
+void executaNumero(char* tokenAtual,Arvore* nodeAtual){
 
-    nodeAtual->caracter = tokenAtual;
+    *nodeAtual->caracter = *tokenAtual;
 }
 
 void executaFechaParenteses(Arvore* nodeAtual,Arvore* nodePrimario){
     Arvore* nodePai = arvore_pai(nodePrimario,nodeAtual->caracter); // procura o pai do nó atual
-
+    // ((((5)-(3))*((4)/(1)))+(10))
+    
     nodeAtual = nodePai; // torna o pai do nó atual como nó atual
 }
 
@@ -80,29 +81,37 @@ Arvore* leArvore(){
 
     entrada = fopen("entrada.txt","r");
 
-    char tokenAtual,tokenAntigo = 'h';
+    char caracterEntrada,caracterInicial='h';
+
+    char* tokenAtual, *tokenAntigo;
     Arvore* nodeAtual;
     Arvore* nodePrimario;
 
+    tokenAntigo = &caracterInicial;
+
     while(!feof(entrada)){
   
-        fscanf(entrada,"%c",&tokenAtual);
+        fscanf(entrada,"%c",&caracterEntrada);
+
+        tokenAtual = &caracterEntrada;
 
         if(tokenAbreParenteses(tokenAtual)){ // se o token for '('
+            printf("1\n");
             
-            executaAbreParenteses(tokenAtual,tokenAntigo,nodeAtual,nodePrimario);  
+            executaAbreParenteses(tokenAtual,tokenAntigo,nodeAtual,nodePrimario); 
 
         }else if(tokenOperador(tokenAtual)){
-
+            printf("2\n");
             executaOperador(tokenAtual,nodeAtual);
-
+       
         }else if(tokenFechaParenteses(tokenAtual)){
+            printf("3\n");
             if(nodeAtual!=nodePrimario){
                 executaFechaParenteses(nodeAtual,nodePrimario);
             }
-
+           
         }else{
-
+            printf("4\n");
             executaNumero(tokenAtual,nodeAtual);
 
         }
@@ -133,21 +142,21 @@ int divisao(int a,int b){
 
 char calculaArvore(Arvore* arv){
     if(!arvore_Vazia(arv->dir) && !arvore_Vazia(arv->esq)){
-        if(arv->caracter=='+'){
+        if(*arv->caracter=='+'){
             return (char)soma((int)calculaArvore(arv->dir),(int)calculaArvore(arv->esq));
         }
-        if(arv->caracter=='-'){
+        if(*arv->caracter=='-'){
             return (char)sub((int)calculaArvore(arv->dir),(int)calculaArvore(arv->esq));
         }
-        if(arv->caracter=='/'){
+        if(*arv->caracter=='/'){
             return (char)divisao((int)calculaArvore(arv->dir),(int)calculaArvore(arv->esq));
         }
-        if(arv->caracter=='*'){
+        if(*arv->caracter=='*'){
             return (char)mult((int)calculaArvore(arv->dir),(int)calculaArvore(arv->esq));
         }
     }
 
-    return arv->caracter;
+    return *arv->caracter;
     
 }
 
@@ -164,7 +173,7 @@ void preencheId(Arvore* arv,int* i){
 void imprimeArvore(Arvore* arv){
     printf("strict graph {\n\n");
     
-    printf("no%d[label=\"%c\"];\n",arv->id,arv->caracter);
+    printf("no%d[label=\"%c\"];\n",arv->id,*arv->caracter);
 
     if(!arvore_Vazia(arv->esq) && !arvore_Vazia(arv->dir)){
         printf("no%d--no%d;\n",arv->id,arv->esq->id);
@@ -176,19 +185,34 @@ void imprimeArvore(Arvore* arv){
 
 }
 
-Arvore* arvore_pai(Arvore* a,char c){
+Arvore* arvore_pai(Arvore* a,char* c){
+
+
     if(arvore_Vazia(a)){
         return NULL;
     }
 
-    if(((!arvore_Vazia(a->esq)) && (a->esq->caracter ==c)) || ((!arvore_Vazia(a->dir)) && (a->dir->caracter==c))){
-        return a;
+    if(!arvore_Vazia(a->esq)){
+        printf("entraste esq");
+        if(a->esq->caracter==c){
+            printf("cce");
+            return a;
+        }
     }
+    if(!arvore_Vazia(a->dir)){
+        printf("entraste di");
+        if(a->dir->caracter==c){
+            printf("ccd");
+            return a;
+        }
+    } 
 
     Arvore* aux = arvore_pai(a->esq,c);
     if(aux==NULL){
         aux = arvore_pai(a->dir,c);
     }
+
+    printf("teste");
     return aux;    
 }
 
@@ -196,7 +220,7 @@ Arvore* arvore_CriaVazia(){
     return NULL;
 }
 
-Arvore* arvore_Cria(char c,Arvore* e,Arvore* d){
+Arvore* arvore_Cria(char* c,Arvore* e,Arvore* d){
     Arvore* a = (Arvore*)malloc(sizeof(Arvore));
     a->caracter = c;
     a->esq = e;

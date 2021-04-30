@@ -9,6 +9,7 @@ int main(){
     int* i = &x;
 
 
+
     preencheId(arv,i);
 
     imprimeArvore(arv);
