@@ -66,7 +66,7 @@ void executaFechaParenteses(Arvore* nodeAtual,Arvore* nodePrimario){
 }
 
 
-void leArvore(){
+Arvore* leArvore(){
     FILE* entrada;
     char c;
 
@@ -100,10 +100,29 @@ void leArvore(){
 
         }
 
+        tokenAntigo = tokenAtual;
+
     }
-
-
     fclose(entrada);
+    
+    return nodePrimario;
+}
+
+int verificaNosFilhos(Arvore* arv){
+    if(arv->esq == NULL && arv->dir == NULL){
+        return 0;
+    }else{
+        return 1;
+    }
+}
+
+void calculaArvore(Arvore* arv){
+    if(verificaNosFilhos){
+        calculaArvore(arv->esq);
+        calculaArvore(arv->dir);
+    }else{
+        
+    }
 }
 
 Arvore* arvore_pai(Arvore* a,char c){

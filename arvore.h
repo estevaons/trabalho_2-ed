@@ -3,7 +3,7 @@
 
 typedef struct arv Arvore;
 
-void leArvore();
+Arvore* leArvore();
 
 Arvore* arvore_CriaVazia();
 
