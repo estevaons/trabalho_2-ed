@@ -9,23 +9,117 @@ struct arv{
     struct arv* dir;
 };
 
+int tokenAbreParenteses(char token){
+    if(token=='('){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+int tokenOperador(char token){
+    if(token=='+' || token=='-' || token=="*" || token=="/"){
+        return 1; 
+    }else{
+        return 0;
+    }
+}
+
+int tokenFechaParenteses(char token){
+    if(token==')'){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+void executaAbreParenteses(char tokenAtual,char tokenAntigo,Arvore* nodeAtual,Arvore* nodePrimario){
+    if(tokenAntigo=='começo'){ // se for o primeiro nó da arvore
+        nodeAtual = arvore_CriaVazia(); // cria um nó vazio
+        nodePrimario = nodeAtual;
+                
+    }else{ 
+        if(tokenOperador(tokenAntigo)){ // se o token antigo for um operador
+            nodeAtual-> dir = arvore_CriaVazia; // cria um nó vazio na direita do nó atual
+        }else{
+            nodeAtual->esq = arvore_CriaVazia; // cria um nó vazio na esquerda do nó atual
+        }
+    }
+            
+}
+
+void executaOperador(char tokenAtual,Arvore* nodeAtual){
+
+    nodeAtual->caracter = tokenAtual;
+
+}
+
+void executaNumero(char tokenAtual,Arvore* nodeAtual){
+
+    nodeAtual->caracter = tokenAtual;
+}
+
+void executaFechaParenteses(Arvore* nodeAtual,Arvore* nodePrimario){
+    Arvore* nodePai = arvore_pai(nodePrimario,nodeAtual->caracter); // procura o pai do nó atual
+
+    nodeAtual = nodePai; // torna o pai do nó atual como nó atual
+}
+
+
 void leArvore(){
     FILE* entrada;
     char c;
 
     entrada = fopen("entrada.txt","r");
 
+//((3)+((4)∗(5)))
+    char tokenAtual,tokenAntigo = 'começo';
+    Arvore* nodeAtual;
+    Arvore* nodePrimario;
+
     while(!feof(entrada)){
+  
+        fscanf("%c",&tokenAtual);
 
-        fscanf("%c",&c);
+        if(tokenAbreParenteses(tokenAtual)){ // se o token for '('
 
-        if(c=='('){
-            arvore_Cria(c,arvore_CriaVazia(),arvore_CriaVazia());
+            executaAbreParenteses(tokenAtual,tokenAntigo,nodeAtual,nodePrimario);
+
+        }else if(tokenOperador(tokenAtual)){
+
+            executaOperador(tokenAtual,nodeAtual);
+
+        }else if(tokenFechaParenteses(tokenAtual)){
+            if(nodeAtual=!nodePrimario){
+                executaFechaParenteses(nodeAtual,nodePrimario);
+            }
+
+        }else{
+
+            executaNumero(tokenAtual,nodeAtual);
+
         }
+
     }
 
 
     fclose(entrada);
+}
+
+Arvore* arvore_pai(Arvore* a,char c){
+    if(arvore_Vazia(a)){
+        return NULL;
+    }
+
+    if(((!arvore_Vazia(a->esq)) && (a->esq->caracter ==c)) || ((!arvore_Vazia(a->dir)) && (a->dir->caracter==c))){
+        return a;
+    }
+
+    Arvore* aux = arvore_pai(a->esq,c);
+    if(aux==NULL){
+        aux = arvore_pai(a->dir,c);
+    }
+    return aux;    
 }
 
 Arvore* arvore_CriaVazia(){
