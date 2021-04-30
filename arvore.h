@@ -25,6 +25,20 @@ int tokenOperador(char token);
 
 int tokenFechaParenteses(char token);
 
+int soma(int a,int b);
+
+int sub(int a,int b);
+
+int divisao(int a,int b);
+
+int mult(int a,int b);
+
+void preencheId(Arvore* arv,int* i);
+
+char calculaArvore(Arvore* arv);
+
+void imprimeArvore(Arvore* arv);
+
 void executaAbreParenteses(char tokenAtual,char tokenAntigo,Arvore* nodeAtual,Arvore* nodePrimario);
 
 void executaOperador(char tokenAtual,Arvore* nodeAtual);

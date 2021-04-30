@@ -3,10 +3,12 @@
 #include<string.h>
 #include"arvore.h"
 
+
 struct arv{
     char caracter;
-    struct arv* esq;
-    struct arv* dir;
+    int id;
+    Arvore* esq;
+    Arvore* dir;
 };
 
 int tokenAbreParenteses(char token){
@@ -18,7 +20,7 @@ int tokenAbreParenteses(char token){
 }
 
 int tokenOperador(char token){
-    if(token=='+' || token=='-' || token=="*" || token=="/"){
+    if(token=='+' || token=='-' || token=='*' || token=='/'){
         return 1; 
     }else{
         return 0;
@@ -32,17 +34,24 @@ int tokenFechaParenteses(char token){
         return 0;
     }
 }
-
+// ((((5)-(3))*((4)/(1)))+(10))
 void executaAbreParenteses(char tokenAtual,char tokenAntigo,Arvore* nodeAtual,Arvore* nodePrimario){
-    if(tokenAntigo=='começo'){ // se for o primeiro nó da arvore
-        nodeAtual = arvore_CriaVazia(); // cria um nó vazio
+    if(tokenAntigo=='h'){ // se for o primeiro nó da arvore
+        nodeAtual = arvore_Cria('0',NULL,NULL); // cria um nó vazio
         nodePrimario = nodeAtual;
                 
     }else{ 
         if(tokenOperador(tokenAntigo)){ // se o token antigo for um operador
-            nodeAtual-> dir = arvore_CriaVazia; // cria um nó vazio na direita do nó atual
-        }else{
-            nodeAtual->esq = arvore_CriaVazia; // cria um nó vazio na esquerda do nó atual
+            
+            nodeAtual->dir = arvore_Cria('0',NULL,NULL); // cria um nó vazio na direita do nó atual
+            nodeAtual = nodeAtual->dir;
+            
+        }else{   
+            
+            nodeAtual->esq = arvore_Cria('0',NULL,NULL); // cria um nó vazio na esquerda do nó atual
+            printf("2\n");
+            nodeAtual = nodeAtual->esq; 
+            
         }
     }
             
@@ -68,29 +77,27 @@ void executaFechaParenteses(Arvore* nodeAtual,Arvore* nodePrimario){
 
 Arvore* leArvore(){
     FILE* entrada;
-    char c;
 
     entrada = fopen("entrada.txt","r");
 
-//((3)+((4)∗(5)))
-    char tokenAtual,tokenAntigo = 'começo';
+    char tokenAtual,tokenAntigo = 'h';
     Arvore* nodeAtual;
     Arvore* nodePrimario;
 
     while(!feof(entrada)){
   
-        fscanf("%c",&tokenAtual);
+        fscanf(entrada,"%c",&tokenAtual);
 
         if(tokenAbreParenteses(tokenAtual)){ // se o token for '('
-
-            executaAbreParenteses(tokenAtual,tokenAntigo,nodeAtual,nodePrimario);
+            
+            executaAbreParenteses(tokenAtual,tokenAntigo,nodeAtual,nodePrimario);  
 
         }else if(tokenOperador(tokenAtual)){
 
             executaOperador(tokenAtual,nodeAtual);
 
         }else if(tokenFechaParenteses(tokenAtual)){
-            if(nodeAtual=!nodePrimario){
+            if(nodeAtual!=nodePrimario){
                 executaFechaParenteses(nodeAtual,nodePrimario);
             }
 
@@ -108,21 +115,65 @@ Arvore* leArvore(){
     return nodePrimario;
 }
 
-int verificaNosFilhos(Arvore* arv){
-    if(arv->esq == NULL && arv->dir == NULL){
-        return 0;
-    }else{
-        return 1;
-    }
+int soma(int a, int b){
+    return a+b;
 }
 
-void calculaArvore(Arvore* arv){
-    if(verificaNosFilhos){
-        calculaArvore(arv->esq);
-        calculaArvore(arv->dir);
-    }else{
-        
+int sub(int a,int b){
+    return a-b;
+}
+
+int mult(int a,int b){
+    return a*b;
+}
+
+int divisao(int a,int b){
+    return a/b;
+}
+
+char calculaArvore(Arvore* arv){
+    if(!arvore_Vazia(arv->dir) && !arvore_Vazia(arv->esq)){
+        if(arv->caracter=='+'){
+            return (char)soma((int)calculaArvore(arv->dir),(int)calculaArvore(arv->esq));
+        }
+        if(arv->caracter=='-'){
+            return (char)sub((int)calculaArvore(arv->dir),(int)calculaArvore(arv->esq));
+        }
+        if(arv->caracter=='/'){
+            return (char)divisao((int)calculaArvore(arv->dir),(int)calculaArvore(arv->esq));
+        }
+        if(arv->caracter=='*'){
+            return (char)mult((int)calculaArvore(arv->dir),(int)calculaArvore(arv->esq));
+        }
     }
+
+    return arv->caracter;
+    
+}
+
+void preencheId(Arvore* arv,int* i){
+    arv->id = *i;
+    *i = *i+1;
+    if(!arvore_Vazia(arv->esq) && !arvore_Vazia(arv->dir)){
+        preencheId(arv->esq,i);
+        preencheId(arv->dir,i);
+    }
+    
+}
+
+void imprimeArvore(Arvore* arv){
+    printf("strict graph {\n\n");
+    
+    printf("no%d[label=\"%c\"];\n",arv->id,arv->caracter);
+
+    if(!arvore_Vazia(arv->esq) && !arvore_Vazia(arv->dir)){
+        printf("no%d--no%d;\n",arv->id,arv->esq->id);
+        imprimeArvore(arv->esq);
+        printf("no%d--no%d;\n",arv->id,arv->dir->id);
+        imprimeArvore(arv->dir);      
+    }
+    printf("}\n");
+
 }
 
 Arvore* arvore_pai(Arvore* a,char c){
@@ -167,16 +218,6 @@ int arvore_Vazia(Arvore* a){
         return 1;
     }
     return 0;
-}
-
-void arvore_Imprime(Arvore* a){
-    printf("(");
-    if(!arvore_Vazia(a)){
-        imprimeAluno(a->caracter);
-        arvore_Imprime(a->esq);
-        arvore_Imprime(a->dir);
-    }
-    printf(")");
 }
 
 
