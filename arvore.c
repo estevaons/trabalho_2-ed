@@ -11,7 +11,7 @@ struct arv{
     Arvore* dir;
 };
 
-int tokenAbreParenteses(char* token){
+int tokenAbreParenteses(char* token){// verifica se o token é abre parentese
     if(token[0]=='('){
         return 1;
     }else{
@@ -19,7 +19,7 @@ int tokenAbreParenteses(char* token){
     }
 }
 
-int tokenOperador(char* token){
+int tokenOperador(char* token){// verifica se o token é um operador
     if(token[0]=='+' || token[0]=='-' || token[0]=='*' || token[0]=='/'){
         return 1;
     }else{
@@ -27,7 +27,7 @@ int tokenOperador(char* token){
     }
 }
 
-int tokenFechaParenteses(char* token){
+int tokenFechaParenteses(char* token){// verifica se o token é fecha parentese
     if(token[0]==')'){
         return 1;
     }else{
@@ -72,7 +72,15 @@ Arvore* executaFechaParenteses(Arvore* nodeAtual,Arvore* nodePrimario){
 
 
 Arvore* leArvore(){
+
     FILE* entrada;
+    FILE* saida;
+    FILE* graphviz;
+
+    saida= fopen("saida.txt","w");
+
+    graphviz = fopen("graphviz.txt","w");
+
 
     entrada = fopen("entrada.txt","r");
 
@@ -91,7 +99,25 @@ Arvore* leArvore(){
 
         tokenAtual = &caracterEntrada;
 
+        if(*tokenAtual == '\n'){// se o token for o \n então ja temos uma arvore pronta para calcular
+            float result = 0;
+            int x=1;
+            int* i = &x;
+            result = calculaArvore(nodePrimario,result);
+            fprintf(saida,"%.2f\n",result);
+            preencheId(nodePrimario,i);
+            fprintf(graphviz,"strict graph {\n\n");
+            imprimeArvore(nodePrimario,graphviz);
+            fprintf(graphviz,"}\n");
 
+
+            arvore_Libera(nodePrimario);
+            //free(nodePrimario);
+
+
+            x=1;
+
+        }
 
         if(tokenAbreParenteses(tokenAtual)){ // se o token for '('
             if(*tokenAntigo=='h') { // se for o primeiro nó da arvore
@@ -109,8 +135,11 @@ Arvore* leArvore(){
             }
 
         }else{ // Eh numero
+            if(*tokenAtual == '\n'){
+                *tokenAntigo = 'h';
+                continue;
+            }
             int i = 0;
-
 
             char numero[5];
             char* aux =(char*)malloc(5*sizeof(char));
@@ -134,6 +163,8 @@ Arvore* leArvore(){
 
             strcpy(tokenAtual,aux);
 
+            free(aux);
+
             executaNumero(tokenAtual,nodeAtual);
 
 
@@ -147,6 +178,19 @@ Arvore* leArvore(){
         tokenAntigo = strdup(tokenAtual);
 
     }
+    // nesse momento ja lemos a ultima linha do arquivo até o final
+    float result = 0;
+    int x=1;
+    int* i = &x;
+    result = calculaArvore(nodePrimario,result);
+    fprintf(saida,"%.2f\n",result);
+    preencheId(nodePrimario,i);
+    fprintf(graphviz,"strict graph {\n\n");
+    imprimeArvore(nodePrimario,graphviz);
+    fprintf(graphviz,"}\n\n");
+
+    arvore_Libera(nodePrimario);
+    x=1;
     free(tokenAntigo);
     fclose(entrada);
 
@@ -169,7 +213,7 @@ float divisao(float a,float b){
     return a/b;
 }
 
-float calculaArvore(Arvore* arv,float result){
+float calculaArvore(Arvore* arv,float result){// essa executa as operações numericas na arvore recursivamente
     if(!arvore_Vazia(arv->dir) && !arvore_Vazia(arv->esq)){
         if(*arv->caracter=='+'){
             result = soma(calculaArvore(arv->esq,result),calculaArvore(arv->dir,result));
@@ -195,7 +239,7 @@ float calculaArvore(Arvore* arv,float result){
 
 }
 
-void preencheId(Arvore* arv,int* i){
+void preencheId(Arvore* arv,int* i){// preenche ids para facilitar na hora de imprimir
     arv->id = *i;
     *i = *i+1;
     if(!arvore_Vazia(arv->esq) && !arvore_Vazia(arv->dir)){
@@ -205,15 +249,15 @@ void preencheId(Arvore* arv,int* i){
 
 }
 
-void imprimeArvore(Arvore* arv){
+void imprimeArvore(Arvore* arv,FILE* graphviz){// imprime a arvore no formato adequado, recursivamente
 
-    printf("no%d[label=\"%s\"];\n",arv->id,arv->caracter);
+    fprintf(graphviz,"no%d[label=\"%s\"];\n",arv->id,arv->caracter);
 
     if(!arvore_Vazia(arv->esq) && !arvore_Vazia(arv->dir)){
-        printf("no%d--no%d;\n",arv->id,arv->esq->id);
-        imprimeArvore(arv->esq);
-        printf("no%d--no%d;\n",arv->id,arv->dir->id);
-        imprimeArvore(arv->dir);
+        fprintf(graphviz,"no%d--no%d;\n",arv->id,arv->esq->id);
+        imprimeArvore(arv->esq,graphviz);
+        fprintf(graphviz,"no%d--no%d;\n",arv->id,arv->dir->id);
+        imprimeArvore(arv->dir,graphviz);
     }
 
 

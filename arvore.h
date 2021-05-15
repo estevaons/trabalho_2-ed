@@ -33,7 +33,7 @@ void preencheId(Arvore* arv,int* i);
 
 float calculaArvore(Arvore* arv, float result);
 
-void imprimeArvore(Arvore* arv);
+void imprimeArvore(Arvore* arv,FILE* graphviz);
 
 Arvore* executaAbreParenteses(char* tokenAtual,char* tokenAntigo,Arvore* nodeAtual,Arvore* nodePrimario);
 
